@@ -1,0 +1,863 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "KEN Elevators Phase 1 inquiry contract",
+    "version": "1.0.0",
+    "description": "Planning artifact, not implemented. Same-origin public POST only; no authentication/accounts and no public stored-lead operations. Privacy/region approval required before real-data intake."
+  },
+  "paths": {
+    "/api/v1/inquiries": {
+      "post": {
+        "operationId": "submitInquiry",
+        "summary": "Durably accept general or quotation inquiry",
+        "description": "Independent size/schema/origin/rate/Turnstile enforcement precedes acceptance. Unique key hash and canonical payload determine 201 new, 200 replay, 409 changed content. Notification is persisted separately and never changes accepted visitor response. Validation/token/rate rejection inserts zero leads. Body limits are streamed; raw values never echoed. Replays remain verified and rate-limited.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InquirySubmission"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Identical normalized replay; original reference/creation time; no new lead or initial notification.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              },
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Acceptance"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "New inquiry and pending notification record committed atomically.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              },
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Acceptance"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid JSON/schema/current notice/field value; safe field-error categories.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              },
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SafeError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin rejected or verification invalid/expired/hostname/action mismatch; refresh challenge if applicable.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              },
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SafeError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Same retained identity with different normalized lead content; no overwrite.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              },
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SafeError"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Raw UTF-8 body exceeds 32768 bytes; no lead.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              },
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SafeError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported media type; application/json required.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              },
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SafeError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate-window cap reached; no lead.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              },
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Retry-After": {
+                "description": "Integer seconds until both applicable windows permit retry.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SafeError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected failure; safe correlation only. If commit outcome unknown, retry same identity with fresh token.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              },
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SafeError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Storage, verification service, rate control or required configuration unavailable; safe retry, no claimed acceptance.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              },
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SafeError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/health": {
+      "get": {
+        "operationId": "getHealth",
+        "summary": "Minimal readiness indicator",
+        "responses": {
+          "200": {
+            "description": "Required server configuration and non-sensitive D1 probe are available.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              },
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Unavailable; no binding/region/version/count/lead details.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              },
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "InquirySubmission": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "All text bounds apply after documented NFC/trim normalization (data-model.md). Total raw UTF-8 body is capped at 32768 bytes. Phone validity and privacy version require server semantic validation. Optional strings may be blank and normalize to null; no type coercion.",
+        "required": [
+          "idempotencyKey",
+          "locale",
+          "type",
+          "name",
+          "phone",
+          "message",
+          "privacyAcknowledged",
+          "privacyNoticeVersion",
+          "turnstileToken"
+        ],
+        "properties": {
+          "idempotencyKey": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89aAbB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "ar",
+              "en"
+            ]
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "general",
+              "quotation"
+            ]
+          },
+          "serviceId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "villa",
+              "school",
+              "administrative",
+              "restaurant",
+              "installation",
+              "maintenance",
+              null
+            ]
+          },
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 100
+          },
+          "phone": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 64,
+            "description": "Arabic/Persian digits and supported separators accepted; library-valid phone with SA default or explicit international code, normalized to E.164."
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 254,
+            "description": "Omitted/null/blank passes; populated value must validate as email. Domain lowercased; local-part preserved."
+          },
+          "city": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 100,
+            "description": "Optional; omitted/null/blank normalizes to null. Populated text is NFC-normalized and trimmed."
+          },
+          "message": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 2000
+          },
+          "propertyType": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "villa",
+              "school",
+              "administrative",
+              "restaurant",
+              "other",
+              null
+            ]
+          },
+          "floors": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 200
+          },
+          "timeline": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "planning",
+              "within_3_months",
+              "within_6_months",
+              "flexible",
+              null
+            ]
+          },
+          "privacyAcknowledged": {
+            "type": "boolean",
+            "const": true
+          },
+          "privacyNoticeVersion": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[A-Za-z0-9._-]+$",
+            "description": "Must equal current server environment notice version; fixture notices permit synthetic tests only."
+          },
+          "turnstileToken": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048,
+            "description": "Fresh single-use token on every application attempt, including accepted replay. Never persisted."
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "general"
+                }
+              },
+              "required": [
+                "type"
+              ]
+            },
+            "then": {
+              "properties": {
+                "propertyType": {
+                  "type": "null"
+                },
+                "floors": {
+                  "type": "null"
+                },
+                "timeline": {
+                  "type": "null"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "Acceptance": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "referenceId",
+          "status",
+          "createdAt",
+          "correlationId"
+        ],
+        "properties": {
+          "referenceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "const": "received"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "correlationId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "SafeError": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "error",
+          "correlationId"
+        ],
+        "properties": {
+          "error": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "code"
+            ],
+            "properties": {
+              "code": {
+                "type": "string",
+                "enum": [
+                  "VALIDATION_ERROR",
+                  "INVALID_JSON",
+                  "PAYLOAD_TOO_LARGE",
+                  "UNSUPPORTED_MEDIA_TYPE",
+                  "ORIGIN_REJECTED",
+                  "VERIFICATION_FAILED",
+                  "VERIFICATION_UNAVAILABLE",
+                  "RATE_LIMITED",
+                  "IDEMPOTENCY_CONFLICT",
+                  "STORAGE_UNAVAILABLE",
+                  "RATE_CONTROL_UNAVAILABLE",
+                  "CONFIGURATION_UNAVAILABLE",
+                  "METHOD_NOT_ALLOWED",
+                  "NOT_FOUND",
+                  "INTERNAL_ERROR"
+                ]
+              },
+              "fieldErrors": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "idempotencyKey": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "required",
+                        "invalid_type",
+                        "invalid_format",
+                        "too_short",
+                        "too_long",
+                        "invalid_value",
+                        "notice_changed",
+                        "quotation_only"
+                      ]
+                    },
+                    "maxItems": 3
+                  },
+                  "locale": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "required",
+                        "invalid_type",
+                        "invalid_format",
+                        "too_short",
+                        "too_long",
+                        "invalid_value",
+                        "notice_changed",
+                        "quotation_only"
+                      ]
+                    },
+                    "maxItems": 3
+                  },
+                  "type": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "required",
+                        "invalid_type",
+                        "invalid_format",
+                        "too_short",
+                        "too_long",
+                        "invalid_value",
+                        "notice_changed",
+                        "quotation_only"
+                      ]
+                    },
+                    "maxItems": 3
+                  },
+                  "serviceId": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "required",
+                        "invalid_type",
+                        "invalid_format",
+                        "too_short",
+                        "too_long",
+                        "invalid_value",
+                        "notice_changed",
+                        "quotation_only"
+                      ]
+                    },
+                    "maxItems": 3
+                  },
+                  "name": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "required",
+                        "invalid_type",
+                        "invalid_format",
+                        "too_short",
+                        "too_long",
+                        "invalid_value",
+                        "notice_changed",
+                        "quotation_only"
+                      ]
+                    },
+                    "maxItems": 3
+                  },
+                  "phone": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "required",
+                        "invalid_type",
+                        "invalid_format",
+                        "too_short",
+                        "too_long",
+                        "invalid_value",
+                        "notice_changed",
+                        "quotation_only"
+                      ]
+                    },
+                    "maxItems": 3
+                  },
+                  "email": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "required",
+                        "invalid_type",
+                        "invalid_format",
+                        "too_short",
+                        "too_long",
+                        "invalid_value",
+                        "notice_changed",
+                        "quotation_only"
+                      ]
+                    },
+                    "maxItems": 3
+                  },
+                  "city": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "required",
+                        "invalid_type",
+                        "invalid_format",
+                        "too_short",
+                        "too_long",
+                        "invalid_value",
+                        "notice_changed",
+                        "quotation_only"
+                      ]
+                    },
+                    "maxItems": 3
+                  },
+                  "message": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "required",
+                        "invalid_type",
+                        "invalid_format",
+                        "too_short",
+                        "too_long",
+                        "invalid_value",
+                        "notice_changed",
+                        "quotation_only"
+                      ]
+                    },
+                    "maxItems": 3
+                  },
+                  "propertyType": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "required",
+                        "invalid_type",
+                        "invalid_format",
+                        "too_short",
+                        "too_long",
+                        "invalid_value",
+                        "notice_changed",
+                        "quotation_only"
+                      ]
+                    },
+                    "maxItems": 3
+                  },
+                  "floors": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "required",
+                        "invalid_type",
+                        "invalid_format",
+                        "too_short",
+                        "too_long",
+                        "invalid_value",
+                        "notice_changed",
+                        "quotation_only"
+                      ]
+                    },
+                    "maxItems": 3
+                  },
+                  "timeline": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "required",
+                        "invalid_type",
+                        "invalid_format",
+                        "too_short",
+                        "too_long",
+                        "invalid_value",
+                        "notice_changed",
+                        "quotation_only"
+                      ]
+                    },
+                    "maxItems": 3
+                  },
+                  "privacyAcknowledged": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "required",
+                        "invalid_type",
+                        "invalid_format",
+                        "too_short",
+                        "too_long",
+                        "invalid_value",
+                        "notice_changed",
+                        "quotation_only"
+                      ]
+                    },
+                    "maxItems": 3
+                  },
+                  "privacyNoticeVersion": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "required",
+                        "invalid_type",
+                        "invalid_format",
+                        "too_short",
+                        "too_long",
+                        "invalid_value",
+                        "notice_changed",
+                        "quotation_only"
+                      ]
+                    },
+                    "maxItems": 3
+                  },
+                  "turnstileToken": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "required",
+                        "invalid_type",
+                        "invalid_format",
+                        "too_short",
+                        "too_long",
+                        "invalid_value",
+                        "notice_changed",
+                        "quotation_only"
+                      ]
+                    },
+                    "maxItems": 3
+                  }
+                }
+              }
+            }
+          },
+          "correlationId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "Health": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "status",
+          "correlationId"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "unavailable"
+            ]
+          },
+          "correlationId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      }
+    }
+  },
+  "x-transport-policy": {
+    "https": "Required on hosted preview/production",
+    "cache": "All API responses no-store; no CDN caching of POST or inquiry data",
+    "cors": "Same-origin only; no wildcard; explicit allowed preview origins; Origin rejection is 403",
+    "unsupportedMethods": "405 JSON SafeError with Allow: POST for inquiries, Allow: GET for health. OPTIONS cross-origin does not enable submission. HEAD health may be safely supported without body; inquiry GET/HEAD never returns records.",
+    "unknownResources": "404 generic safe response; no public inquiries/:referenceId, list, update or replay endpoint",
+    "correlation": "Server-generated UUID in X-Request-ID and JSON; never reuse caller-provided ID without validation",
+    "rate": "10/10-minute and 50/day fixed windows per trusted network digest; all parsed attempts including rejected verification/replay consume quota",
+    "timeouts": "Siteverify attempt 5 seconds, one bounded retry for transient network failure using token-scoped Siteverify identity; API client unknown outcome retains identity and draft",
+    "errors": "UI maps code and field category to reviewed ar/en dictionaries; unmapped code gives localized generic retry; no raw server text"
+  }
+}
