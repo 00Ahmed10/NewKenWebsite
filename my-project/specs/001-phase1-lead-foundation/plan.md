@@ -4,7 +4,7 @@
 
 **Input:** specs/001-phase1-lead-foundation/spec.md; ../docs/PRD.md (PRD-001 v1.0, Draft); .specify/memory/constitution.md v1.0.0.
 
-**Status:** Planning complete; ready for task generation. Implementation, hosted verification, stakeholder acceptance and production authorization are not completed. Source PRD, constitution and clarified spec are preserved.
+**Status:** Documentation remediated after the completed analysis; ready for a new speckit-analyze review. Implementation, hosted verification, stakeholder acceptance and production authorization are not completed. PRD/constitution are preserved; spec and supporting artifacts carry the documented corrections.
 
 ## Summary
 
@@ -32,13 +32,13 @@ Phase 1 implements foundation slices of P0-F001/F002/F005/F007 plus P0-F003/F006
 | Constraints | WCAG 2.1 AA, locale parity, reduced-motion-safe enhancement, synthetic-only unapproved infrastructure, no public leads/secrets/logged personal data |
 | Performance | Release p75 LCP ≤2.5s, INP ≤200ms, CLS ≤0.10; synthetic performance ≥90/accessibility ≥95; agreed two-second critical-content objective |
 
-Supported version baselines are researched, not installed/tested. Exact patches, action SHAs, Node/npm and browser tool versions are pinned and compatibility-checked in the first implementation task. [research.md](research.md) records choices/alternatives and official sources. No technical clarification remains; external approvals are gates in [dependencies.md](dependencies.md).
+Supported version baselines are researched, not installed/tested. Exact patches, action SHAs, Node/npm and browser tool versions are pinned and compatibility-checked in the first implementation task. [research.md](research.md) records choices/alternatives and official sources. Documented corrections require renewed consistency analysis; external approvals remain gates in [dependencies.md](dependencies.md).
 
 ## Constitution Check
 
 **Pre-research check:** PASS for planning. The authorized scope follows prescribed technologies, Phase 1 sequencing and synthetic-only preview; no unjustified exception identified. Business/provider approvals remain future evidence gates.
 
-**Post-design check:** PASS for planning against all eight principles. PASS denotes a compliant design, not an executed test or approval. No principle is waived; later-phase obligations have explicit owners/deadlines.
+**Post-design check:** Original planning PASS is historical. The remediation resolves the documented design conflicts while preserving all principles; renewed speckit-analyze review is pending. No executed test/approval or principle waiver is claimed; later-phase obligations retain explicit owners/gates.
 
 | Principle | Design evidence | Planned acceptance owner/gate |
 |---|---|---|
@@ -55,13 +55,16 @@ Named individuals/access/approval evidence remain pending. Their gates cannot be
 
 ## Project Structure
 
+Path convention: the Git repository root is NewKenWebsite/; the application/Spec Kit working directory is NewKenWebsite/my-project/. All source, config, tests, migrations, scripts, feature evidence and npm/Wrangler/Spec Kit commands below are relative to my-project/ unless explicitly marked Git-root-relative. The governing PRD is ../docs/PRD.md from that working directory. GitHub Actions workflows are the exception: NewKenWebsite/.github/workflows/{quality,staging}.yml, written as ../.github/workflows/... from my-project. Checkout occurs at Git root, Actions run commands with defaults.run.working-directory: my-project; non-run actions set lock/cache/artifact paths explicitly under my-project. Wrangler deploy runs from my-project so its functions/ and wrangler.jsonc are discovered beside build/client. No application source belongs at Git root.
+
 ### Documentation (this feature)
 
 ~~~text
 specs/001-phase1-lead-foundation/
-├── spec.md                         # Clarified source specification, unchanged
+├── spec.md                         # Source specification with remediation acceptance criteria
 ├── plan.md
 ├── research.md
+├── design-direction.md             # Proposed premium system, five-section Home and later cinematic path
 ├── data-model.md
 ├── quality-strategy.md
 ├── operations.md
@@ -70,7 +73,7 @@ specs/001-phase1-lead-foundation/
 ├── contracts/
 │   ├── inquiries.openapi.json      # Public submission/health contract
 │   └── ui-localization.md          # Routes, query context and interaction contract
-└── tasks.md                        # Future speckit-tasks output, not generated here
+└── tasks.md                        # Existing T001–T117 implementation/verification tasks, unchecked
 ~~~
 
 ### Planned source structure (nothing implemented by this command)
@@ -107,7 +110,7 @@ tests/
 ├── contract/                       # OpenAPI and negative transport expectations
 ├── integration/                    # Cloudflare runtime/D1 races and notification interruption
 └── browser/                        # Local and protected hosted critical journeys
-.github/workflows/                  # Quality and separately authorized deployments
+../.github/workflows/               # Git-root quality/staging workflows; run commands in my-project
 vite.config.ts, react-router.config.ts, wrangler.jsonc, package.json
 ~~~
 
@@ -121,32 +124,43 @@ Content records have stable page/service/media IDs, paired copy, preparation/app
 
 Choose a nonmodal mobile disclosure menu to minimize focus complexity: announced expanded state, hidden links excluded from tab order, Escape closes and restores trigger focus. If design changes it to a modal, add tested focus containment/background inertness before acceptance. Components use semantic elements and logical CSS properties; numeric/reference/phone fragments use bidi isolation and LTR presentation. Form UI stores drafts in component memory only and uses localized inline/summary feedback. No persistent personal drafts are assumed across reload or locale changes.
 
-### Provisional design tokens
+### Scaffold ownership and checkpoints (I1/I2)
 
-| Token | Proposed value/use |
+T003 initially owns vite.config.ts, react-router.config.ts, package interfaces and minimal src/root.tsx, src/routes.ts, src/entry.client.tsx plus src/routes/scaffold.tsx: a self-contained buildable root/index route with no future story/content/widget imports. Fresh-checkout type generation and minimal SSG build must pass at T003. T008 runs only setup checks and records future command interfaces as pending; missing implementations fail explicitly if invoked. T018 takes ownership of those same root/entry/route files, replaces the temporary scaffold route with locale routes/page templates and removes src/routes/scaffold.tsx; T019 expands the final 14-document prerender/output contract. Never maintain a second root/entry/routing system.
+
+T021 checks final hydration-script hashes/minimal Turnstile origin policy with inert CSP/script fixtures and a stub host, plus current shell routes/navigation/axe. It cannot import the future widget or claim Siteverify success. T025/T026 execute only implemented setup/foundation suites. T037 defines actual widget/form lifecycle tests (initially pending/failing until T046–T049); T046 runs implemented widget tests locally; T053/T055 require the real hosted widget under final CSP and actual server verification. T094/full-candidate CI runs all implemented story suites. Pending later mandatory suites cannot be waived or reported passed by an early fixture.
+
+### Provisional design direction — updated 2026-10-13
+
+[design-direction.md](design-direction.md) is the implementation-ready design proposal for review, not visual approval or application implementation. It supersedes the previous provisional hex/font table. PRD/constitution requirements and remediated inquiry/monitoring contracts remain unchanged.
+
+| Token / pattern | Proposed value/use |
 |---|---|
-| Navy/background | #0B1526 |
-| Navy/surface | #15243A |
-| Metallic gold | #C7A568 for decorative trim and CTA surface; navy CTA text |
-| Warm neutral | #F5F1E8; light readable text or section background |
-| Ink | #172335 on warm neutral |
-| Error | #B42318 on light surfaces; dedicated light-error pairing on navy, contrast tested |
-| Spacing/radius | 4px base; 8/12/16/24/32/48/64px steps; 8px controls, 16px cards |
-| Typography | Noto Sans Arabic Arabic body/headings; Inter English body; optional Cormorant Garamond English display, all provisional |
-| Motion | 120–180ms opacity/color transitions; no parallax, autoplay/video or reveal-dependent visibility |
+| Midnight Navy / Deep Navy | #081722 primary dark canvas; #0B1220 recessed surface |
+| Champagne Gold | #BEA073 elegant accent/CTA fill with navy text; gold/ivory is 2.22:1 and decorative only |
+| Warm Ivory / Graphite | #F5F2EB light surface/text on navy; #28343D body/essential outlines on ivory |
+| Error / success | #B42318 / #216E50 on ivory form/confirmation panels, with text/icon feedback |
+| Spacing/radius | 4px base; 8/12/16/24/32/48/64/80/96/120px steps; 6px controls, 10px cards, 12px image frame |
+| Typography | Alexandria 600/optional 700 Arabic headings; IBM Plex Sans Arabic 400/500 body; Manrope English; local WOFF2 and exact-file license/shaping/budget approval pending |
+| Layout | 1248px maximum container; logical RTL/LTR spacing; generous whitespace; five Home editorial sections with all six service choices and inline project status |
+| Phase 1 motion | Existing 120–180ms opacity/color feedback only; static still or honest CSS surface, no door motion/camera/parallax/video/WebGL |
 
-Exact tokens/fonts/rights require visual/native approval. Enforce 4.5:1 normal text, 3:1 large text/control contrast with automated token checks and rendered review; gold body copy is not assumed safe on light backgrounds. Use 44×44px targets where practicable, visible two-tone focus, flexible line height, no Arabic letter spacing and font-display:swap. Local licensed font subsets preserve shaping. Approved hero uses responsive picture/srcset, eager fetch priority and dimensions; below-fold images are lazy. Without supplied assets, use an honest CSS surface and localized preparation state, not a fabricated elevator/project image.
+Home wireframe: (1) cinematic static hero with quotation + Explore solutions anchor, (2) three featured villa/school/administrative cards plus restaurant text entry, (3) three approved benefit themes or preparation rows plus an honest inline project-preview status, (4) installation/maintenance entries, (5) closing quotation/general-contact CTA. Shared header/footer retain six routes and privacy utility; About/Services/Projects/Why KEN remain preparation documents in Phase 1. This grouping satisfies spec FR-005 without adding a sixth editorial section or dropping service IDs. Full marketing content/real gallery remains Phase 2.
+
+Exact tokens/fonts/assets require DEP-02/03/09 approval. Apply 4.5:1 normal text, 3:1 large text/applicable control contrast; two-tone focus, ≥44px targets, no Arabic letter spacing, unclipped joining/diacritics and measured font fallback. Preserve the existing selected-locale font ceiling ≤120 KiB and total route budgets in quality-strategy.md. Font licensing research is evidence of a candidate, not installed binary rights, measured bytes or final typography approval; absent approvals/budget proof use a documented reviewed system/provisional fallback. Initial HTML/CTAs remain visible; media failure preserves dimensions and honest preparation copy.
+
+The premium door storyboard is a later P1-F003 / delivery Phase 3 proposal only. First evaluate CSS depth or opt-in rendered media against stills; lazy React Three Fiber is conditional on an approved need and measured feasibility. No motion library or 3D package enters Phase 1, T087 is unchanged in scope, and no Phase 1 budget increase is granted. Later scope/architecture/schedule decisions and implementation tasks belong to the separately approved later feature. Decorative Home implementation still follows T078 hosted persistence/recovery proof. See design-direction.md for camera/timing/states/mobile/reduced-motion contracts and gates.
 
 ## Backend architecture and acceptance sequence
 
-1. Create server correlation UUID; enforce method, HTTPS at hosting edge, allowed origin, application/json and bounded UTF-8 body ≤32 KiB. Do not trust declared Content-Length alone; cap stream reading.
-2. Parse bounded JSON. Read rate identity only from Cloudflare-trusted network metadata; ignore caller-supplied forwarded IPs. Missing trusted identity fails safely on hosted requests; local tests supply a deliberate adapter.
-3. Atomically claim both per-network rate windows, then validate the allowlisted schema/normalized fields/current privacy acknowledgement. Limits: 10 requests/10 minutes and 50/day, including parsed submissions later rejected by schema/verification and accepted replays. Rate refusal is 429 with Retry-After; storage/control outage is 503. Edge-level body/invalid-JSON flood protection supplements counters. Fixed windows allow boundary bursts and shared-IP interference; report this tradeoff and tune from safe aggregate evidence.
-4. Verify Turnstile with secret, token, expected action=inquiry and configured hostname allowlist; timeout fails closed. Use one token-scoped Siteverify UUID for bounded network retry; application retries refresh tokens. Never expose or persist challenge tokens.
-5. Compute environment-scoped SHA-256 key hash and keyed canonical payload hash. Unique D1 key plus batch handles simultaneous acceptance. Insert candidate inquiry on conflict do nothing; insert sequence-one pending notification only for the newly inserted candidate; select authoritative key row in the batch. Existing matching canonical payload returns 200/original reference; changed content returns 409/no insert; new candidate returns 201. SQL failure rolls back and returns 503. Concurrent winners need no in-memory lock.
-6. Return only referenceId, received status and safe correlation/timestamp metadata, with no-store. After commit, best-effort waitUntil invokes the notification adapter. Visitor success is unaffected by notification result. Pending records and restricted reconciliation recover interruptions independently of the request lifetime.
+1. Create server correlation UUID; enforce method, HTTPS at hosting edge, allowed origin and application/json. Resolve network identity only from Cloudflare-trusted metadata, ignoring caller-supplied forwarding headers; missing hosted identity fails safely (local tests have an explicit adapter).
+2. BEFORE body reading/JSON parsing, atomically claim both trusted-network D1 windows: 10 requests/10 minutes and 50/UTC day. Malformed and oversized eligible inquiry POSTs consume these limits, as do later invalid fields/verification and replay, once each. Refusal returns 429/Retry-After without reading the body; limiter outage returns 503. This application pre-parse control replaces the previously promised unverified edge flood feature; T034/T040/T041/T044 implement/test it and T053/T058 prove the hosted target. It adds a bounded D1 operation before parsing and cannot protect against platform exhaustion or distributed networks; fixed-window boundary bursts/shared-IP interference remain known tradeoffs. Optional platform controls are supplementary only after actual capability/policy review, never a dependency invented to claim this protection.
+3. Stream/cap UTF-8 body at 32768 bytes regardless of Content-Length, parse bounded JSON, then independently validate allowlisted types/fields/normalization, true privacy acknowledgement and notice-version syntax. Do not require current-notice equality at this step. Invalid inputs insert nothing; quota is not refunded.
+4. Verify fresh Turnstile with secret, expected action=inquiry and configured hostname allowlist; timeout fails closed. Use a token-scoped Siteverify UUID for bounded network retry; application retries refresh tokens. Never expose/persist tokens, and never skip controls for a recognized identity.
+5. Canonicalize validated UUID v4 to lowercase, compute environment-scoped key hash, and read the retained row from authoritative D1. Matching canonical payload under its stored hash version returns 200/original reference/createdAt, even with old notice A after B rollover, without changing consent or dispatching notification. Changed valid content/notice returns 409 before current-notice equality. On a miss, require the current server notice snapshot; a stale miss gets a final authoritative lookup to classify a concurrent winner, otherwise 400/notice_changed with no insert. For a current-notice miss, one batch inserts candidate ON CONFLICT DO NOTHING, inserts sequence-one pending only for the new candidate UUID and selects the authoritative row. Unique key/batch resolves concurrent winners to 201/200/409; the preliminary policy read never grants permission to overwrite or bypass uniqueness. Lookup/SQL failures return safe 503; batch failure rolls back. See data-model.md for decision points and A → B tests.
+6. Return only referenceId, received status and safe correlation/timestamp metadata, with no-store. After a NEW commit only, best-effort waitUntil invokes notification dispatch. Visitor success is independent of notification outcome. Restricted reconciliation recovers interruptions outside the request lifetime.
 
-[data-model.md](data-model.md) defines fields/hashes/state/migrations; [OpenAPI](contracts/inquiries.openapi.json) defines exact transport/status/error codes. No method handler exposes inquiry data. Unsupported public methods return 405 with Allow, unknown inquiry child routes return generic 404. Health exposes only ok/unavailable and correlation, no counts/configuration.
+[data-model.md](data-model.md) defines fields/hashes/state/migrations; [OpenAPI](contracts/inquiries.openapi.json) defines exact transport/status/error codes. No method handler exposes inquiry data. Unsupported public methods return 405 with Allow, unknown inquiry child routes return generic 404. Health HTTP 200 uses status=ok and HTTP 503 uses status=unavailable, with response-specific schemas, matching correlation and no-store; no counts/configuration.
 
 ### Security and privacy boundaries
 
@@ -185,7 +199,7 @@ GitHub Actions becomes the selected planning CI/CD choice under this explicit us
 | 7 | Complete initial homepage/components, approved media or honest fallback, tokens and budgets; modest motion only after persistence proof | Five widths, keyboard/screen-reader/reduced-motion and performance reports |
 | 8 | Hosted critical walkthrough, native reviews and ≥10 usability tests; close Phase 1 approval gates; document later blockers | Revision/URL/evidence pack; SC-001–010 review with no fabricated pass claims |
 
-Steps 1–3 establish the usable shell before API integration; detailed decorative homepage work follows secure persistence. Research/designer reviews may proceed concurrently, but implementation must honor dependencies. Phase 1 target is 2026-10-23, conditional on dependencies; dates move when gates cannot close. speckit-tasks will expand these steps into dependency-ordered work and verification tasks.
+Steps 1–3 establish the usable shell before API integration; detailed decorative homepage work follows secure persistence. Research/designer reviews may proceed concurrently, but implementation must honor dependencies. Phase 1 target is 2026-10-23, conditional on dependencies; dates move when gates cannot close. tasks.md assigns these steps to T001–T117 with dependencies and verification; the documentation corrections require a new analysis run.
 
 ## Complexity Tracking
 
@@ -193,4 +207,4 @@ No constitutional violation or approved exception. Restricted replay avoids an e
 
 ## Planning validation record
 
-On 2026-10-11: all nine generated artifacts are present; OpenAPI JSON parses and all internal schema references resolve; local Markdown links resolve; no unfinished template markers or whitespace/fence errors were found. Source PRD, constitution and clarified spec SHA-256 hashes are unchanged. AGENTS.md points to this plan and retains governing-document/no-implementation guidance. The required agent-context script ran successfully. Git diff verification was unavailable because the shell process could not start; filesystem validation completed independently. No application tests, build, remote migration or deployment were run because this command creates planning documents only. These checks establish artifact integrity, not hosted acceptance.
+On 2026-10-11: all nine generated artifacts are present; OpenAPI JSON parses and all internal schema references resolve; local Markdown links resolve; no unfinished template markers or whitespace/fence errors were found. Source PRD, constitution and clarified spec SHA-256 hashes were unchanged in that original planning run; the present remediation intentionally updates the spec and supporting documents, preserving PRD/constitution. AGENTS.md points to this plan and retains governing-document/no-implementation guidance. The required agent-context script ran successfully. Git diff verification was unavailable because the shell process could not start; filesystem validation completed independently. No application tests, build, remote migration or deployment were run because this command creates planning documents only. These checks establish artifact integrity, not hosted acceptance.

@@ -22,14 +22,14 @@ All body keys are allowlisted; unknown keys, wrong types, arrays where scalars a
 
 | Field | Required/type | Accepted bounds and normalization |
 |---|---|---|
-| idempotencyKey | Required UUID v4 string | Generated per intended submission; client retains through unknown/failure/retry; never stored raw server-side |
+| idempotencyKey | Required UUID v4 string | Validate the exact hyphenated UUID v4/variant pattern in OpenAPI before generic text trimming: no whitespace, braces, URN prefix, other version or nonstring. Accept upper/lower hex; lowercase before hashing. Client generates/retains canonical lowercase through unknown/failure/retry; never stored raw server-side |
 | locale | Required enum | ar/en only |
 | type | Required enum | general/quotation |
 | name | Required string | 2–100 code points; internal whitespace preserved |
 | phone | Required string | Raw 3–64 code points; map Arabic/Persian digits, supported punctuation and whitespace; parse with SA national default or supplied international country code; library-valid E.164, ≤15 digits after +; discard raw form |
 | message | Required string | 10–2,000 code points; normalized text including allowed line breaks |
 | privacyAcknowledged | Required boolean | Literal true only; never coerced from strings |
-| privacyNoticeVersion | Required string | 1–64 ASCII [A-Za-z0-9._-], must exactly match environment current notice |
+| privacyNoticeVersion | Required string | 1–64 ASCII [A-Za-z0-9._-]; structural validity applies to every request. Must equal current environment notice only for a new acceptance; retained replay compares the original accepted payload/notice first |
 | turnstileToken | Required string | 1–2,048 characters; verify only, never retain |
 | email | Optional string/null | Null/omitted/blank becomes null; populated email ≤254 code points, valid address schema; trim, preserve local-part case, lowercase domain |
 | city | Optional string/null | Null/omitted/blank becomes null; populated 1–100 code points |
@@ -44,10 +44,10 @@ Populated propertyType/floors/timeline in general mode are invalid; omitted/null
 
 Canonical lead content is a fixed-key-order serialization of locale, type, serviceId, name, phoneE164, email, city, message, propertyType, floors, timeline, privacyAcknowledged=true and privacyNoticeVersion. Every absent optional key is explicit null. It excludes idempotencyKey, turnstileToken, correlation ID, server timestamps and notification mode/status. Different locale or notice version is materially different lead content. Refreshed token and equivalent phone formatting are not.
 
-- idempotency_key_hash: SHA-256(environment identity + delimiter + UUID key). Key is high-entropy, not derived from phone/name.
+- idempotency_key_hash: SHA-256(UTF-8(environment identity + "\n" + canonical lowercase hyphenated UUID v4)). Environment identity is a stable configured identifier excluding LF; no trim/coercion of UUID input is permitted. Key is high-entropy, not derived from phone/name.
 - payload_hash: HMAC-SHA-256(server payload secret, canonical lead bytes), preventing offline guessing from an unkeyed personal-data digest. Store hash_version. Old keys remain available for the lifetime of matching retained inquiries; verify original row using its version during rotation. Never log either hash or canonical payload.
 - Lifetime: replay identity lasts as long as its retained inquiry. Do not silently expire a 24-hour key while retaining the lead. Real-data retention is unapproved, so no production duration is adopted. Preview synthetic cleanup ends that fixture identity; do not reuse purged fixture UUIDs.
-- Client changes after an unknown outcome must not silently rotate the key: offer explicit new submission after explaining possible prior acceptance/conflict. Confirmation clears the completed draft; a new form action creates a new key. No browser persistent personal storage.
+- The client freezes the submitted normalized payload (including notice A and acknowledgement) alongside its identity while outcome is unknown. Notice B must not rewrite this retry snapshot or silently clear its acknowledgement. An identical replay preserves stored privacy_version, consent_at, created_at and notification state. If a definitely unaccepted draft receives 400/notice_changed, display B and require fresh unchecked acknowledgement before another new acceptance. Client changes after an unknown outcome must not silently rotate the key: offer explicit new submission after explaining possible prior acceptance/conflict. Confirmation clears the completed draft; a new form action creates a new key. No browser persistent personal storage.
 
 ## D1 tables
 
@@ -104,17 +104,19 @@ Indexes: (status,next_retry_at), (inquiry_id,attempt_number). A current delivery
 | request_count | INTEGER NOT NULL; bounded atomic increment |
 | expires_at | INTEGER NOT NULL |
 
-Composite primary key (network_digest,window_kind,window_start). Index expires_at. Digest uses environment/day-derived rate secret and trusted network identity; rotation aligns with day boundary. Counter defaults: 10 per ten-minute fixed window and 50 per UTC day. Conditional UPSERT with RETURNING increments only below cap; no returned row means refusal. Claim both windows in a batch; any refusal yields no lead. A consumed shorter-window quota is not refunded if the other fails. Expired rows are ignored immediately and deleted by restricted cleanup, with a proposed maximum 48-hour operational cleanup window. Digests are pseudonymous network data and require privacy review; never log them. This is not a guaranteed abuse-proof capacity policy.
+Composite primary key (network_digest,window_kind,window_start). Index expires_at. Digest uses environment/day-derived rate secret and trusted network identity; rotation aligns with day boundary. Counter defaults: 10 per ten-minute fixed window and 50 per UTC day. After method/media/origin guards and trusted identity resolution, claim quota BEFORE reading the body or parsing JSON; all eligible inquiry POST attempts, including malformed/oversized/schema/verification rejection and replay, consume these same windows once. There is no second post-parse charge. Conditional UPSERT with RETURNING increments only below cap; no returned row means refusal. Claim both windows in a batch; any refusal yields no lead. A consumed shorter-window quota is not refunded if the other fails. Expired rows are ignored immediately and deleted by restricted cleanup, with a proposed maximum 48-hour operational cleanup window. Digests are pseudonymous network data and require privacy review; never log them. This is not a guaranteed abuse-proof capacity policy.
 
 ## Durable acceptance and concurrency
 
-After successful validation/rate/Turnstile, one parameterized batch:
+After transport/pre-parse rate checks, bounded parsing, independent structural/field validation and fresh Turnstile, compute the canonical identity. Current-notice equality is a NEW-acceptance predicate, not a structural schema predicate.
 
-1. Insert proposed inquiry UUID using ON CONFLICT(idempotency_key_hash) DO NOTHING.
-2. Insert pending sequence-one attempt by selecting only the proposed newly stored inquiry UUID, guarding uniqueness. A replay/conflict cannot create another sequence-one attempt or change notification state.
-3. Select the authoritative inquiry by key hash and compare canonical payload using the stored hash version.
+1. Read the retained identity from authoritative D1 (replication remains disabled), selecting only reference, original creation time, payload hash/hash version and accepted notice/consent metadata. Compare with the stored hash version. A matching normalized payload returns 200/original reference/time even when submitted notice A is no longer current; a different valid payload returns 409. Neither path writes an inquiry, changes consent or creates/dispatches another notification.
+2. On an identity miss, require the submitted notice to equal the server's current configured version for this request. If stale, perform a final authoritative lookup to resolve a concurrently committed winner as 200/409; if still absent, return 400/VALIDATION_ERROR with privacyNoticeVersion=notice_changed and insert nothing. This final miss is the stale-new-request decision point; a later commit can be resolved by a further retry. Do not accept a stale new inquiry to resolve a race.
+3. For an absent identity with a current notice, run one parameterized D1 batch: insert candidate inquiry UUID ON CONFLICT(idempotency_key_hash) DO NOTHING; insert pending sequence-one only by selecting the newly stored candidate UUID with uniqueness guard; select the authoritative key row and compare using its stored hash version. Only this batch authorizes a new write. A concurrent winner resolves to 200/409 rather than overwrite or a second notification.
 
-New row id matches proposed UUID: 201. Matching existing normalized payload: 200/original reference/time. Conflicting payload: 409/no new inquiry. Batch SQL failure: rollback and 503. A lost response or uncertain transport result is recoverable by same-key retry with fresh challenge. D1 remains authoritative. Concurrency tests must prove one inquiry/one initial attempt. Do not rely on a separate preliminary SELECT or local lock.
+New candidate wins: 201. Matching retained winner: 200/original reference/time. Changed valid payload: 409/no write. Batch SQL failure: rollback and 503; lookup/storage/control outage fails safely without claimed acceptance. The read used to distinguish notice policy is not a read-then-insert uniqueness guarantee: the unique constraint and final atomic batch arbitrate new-acceptance races, with no local lock. Server current notice is a required configuration snapshot per request; rollover does not retire retained identities or payload-hash keys. A lost response retries the immutable submitted snapshot with a fresh token. Existing invalid transport/schema/acknowledgement/rate/verification attempts never bypass their independent rejection because a key is recognized.
+
+Required A → B proof (T036/T050/T057): accept under A, lose response, switch server/public notice to B, replay A concurrently and by uppercase/lowercase UUID variants. Assert 200 with original reference/createdAt, unchanged consent_at/privacy_version, exactly one inquiry and one sequence-one notification. Changing any material field or A to B on the retained identity yields 409 after valid controls. A new key with A yields 400/notice_changed/zero inserts; a new key with B yields 201. Include concurrent miss/winner resolution, storage/lookup failures, expired token and capped-rate replay. Historical replay never authorizes another notification dispatch.
 
 ## Notification state transitions
 

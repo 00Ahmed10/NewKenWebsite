@@ -6,7 +6,9 @@ These are proposed interfaces for future implementation tasks. The repository cu
 
 Use Node 24 LTS and npm, pinned to an exact supported patch/version in implementation; Git, approved Cloudflare organization access and GitHub repository permissions. Local code uses React 19.3/Router 8.4/Vite 8.3/Tailwind 4.3/TypeScript 6 baselines, with a reviewed committed dependency lock. On the initial scaffold, install the pinned set; subsequent checkouts use npm ci. Provision only the approved protected staging target for Phase 1; production remains disabled.
 
-From project root in PowerShell:
+Path convention: Git root is NewKenWebsite/; application and Spec Kit root is NewKenWebsite/my-project/. All commands below (including npm, Wrangler, operator tools and .specify scripts) run from my-project. If starting at NewKenWebsite, first run `Set-Location -LiteralPath ./my-project`. Source/config/tests/functions/migrations/output stay there. Workflow files alone live at NewKenWebsite/.github/workflows, referenced as ../.github/workflows from my-project. GitHub checkout is at Git root, run-step working-directory is my-project, and non-run action inputs use explicit my-project/package-lock.json, my-project/build/client and my-project evidence paths.
+
+From application root (NewKenWebsite/my-project) in PowerShell:
 
 ~~~powershell
 npm ci
@@ -25,7 +27,7 @@ npm run test:browser
 npm run check:performance
 ~~~
 
-Planned script behavior: dev runs Router/Vite frontend hot reload; build invokes Router SSG, static finalization, media/metadata generation and audit; output build/client. test:integration uses isolated Cloudflare runtime/D1 fixtures. Browser checks start or target wrangler pages dev, not a frontend-only preview. Performance script uses the recorded agreed profile. check:build enforces CSP/budgets/projections/no-secret outputs. No nominal script pass can replace hosted evidence.
+Planned script behavior: dev runs Router/Vite frontend hot reload; build invokes Router SSG, static finalization, media/metadata generation and audit; output build/client. test:integration uses isolated Cloudflare runtime/D1 fixtures. Browser checks start or target wrangler pages dev, not a frontend-only preview. Performance script uses the recorded agreed profile. check:build enforces CSP/budgets/projections/no-secret outputs. At T003 the only build is the self-contained root/entry/scaffold route. T008 validates installed Setup checks; T014/T019–T025 make content/routes/contracts/final build audits/browser/performance suites executable. T025/T026 run implemented foundation suites with inert CSP/script fixtures; T037/T046–T052 later add actual form/widget suites and T053/T055 require actual hosted verification. Pending mandatory checks are recorded pending, never fixture-passed; invoking a missing implementation fails explicitly. No nominal script pass can replace hosted evidence.
 
 For a full local Pages/API session after the initial build:
 
@@ -35,6 +37,21 @@ npx wrangler pages dev build/client --persist-to .wrangler/state
 ~~~
 
 ken-preview is a proposed configuration database name, not an existing resource; resolve to the actual reviewed name/ID in wrangler.jsonc. The same local persistence directory is essential. D1 local migration must never silently choose --remote. Hot-reload-only frontend dev cannot prove Pages API/storage; rebuilding updates static HTML for local full-runtime QA.
+
+## Spec Kit versus Git root
+
+The existing .specify/scripts/powershell/common.ps1 finds .specify before Git, so its REPO_ROOT means my-project (Spec Kit root), not NewKenWebsite (Git root). Its Test-HasGit checks for .git at that nested root and can emit a Git-not-detected warning even though the parent repository exists; never treat that warning as a reason to initialize another repository or switch branches. From my-project independently verify Git and feature paths before any future Spec Kit command:
+
+~~~powershell
+git -C .. rev-parse --show-toplevel
+git -C .. branch --show-current
+$env:SPECIFY_FEATURE = '001-phase1-lead-foundation'
+.specify/scripts/powershell/check-prerequisites.ps1 -Json -PathsOnly
+.specify/scripts/powershell/check-prerequisites.ps1 -Json -RequireTasks -IncludeTasks
+~~~
+
+Use the feature override only after verifying the actual branch is 001-phase1-lead-foundation; it pins path selection and does not replace the branch check. Expect FEATURE_DIR=<Git root>/my-project/specs/001-phase1-lead-foundation and TASKS/IMPL_PLAN within it. Run setup-plan/setup-tasks and extension scripts from my-project only when their workflow is explicitly requested; this remediation does not run mutating setup, branch/commit hooks or context-update scripts. No script code is changed here.
+
 
 ## Configuration contract
 
@@ -49,7 +66,7 @@ ken-preview is a proposed configuration database name, not an existing resource;
 |---|---|
 | DB | Explicit local/preview/production D1 binding; no read replication initially |
 | APP_ENVIRONMENT / ENVIRONMENT_ID | Enforces target identity and synthetic-only preview behavior |
-| CURRENT_PRIVACY_NOTICE_VERSION | Current accepted notice, independent server validation |
+| CURRENT_PRIVACY_NOTICE_VERSION | Current notice required for new acceptance only; retained identical replay compares original notice/payload before this equality gate |
 | TURNSTILE_SECRET_KEY | Siteverify secret; server only |
 | TURNSTILE_ALLOWED_HOSTNAMES / ALLOWED_ORIGINS | Exact reviewed hosting allowlists |
 | PAYLOAD_HASH_KEYS / PAYLOAD_HASH_VERSION | Versioned payload HMAC key material; preserve old versions while retained identities need them |
@@ -68,10 +85,10 @@ Local Turnstile uses official test credentials obtained from documentation. Host
 2. Create a staging Direct Upload Pages project (proposed ken-elevators-staging) and isolated D1/widget. Choose D1 location/jurisdiction only according to reviewed synthetic setup and approved real-data plan, not an assumed Saudi hint. Separate later production project is not a Phase 1 deployment.
 3. Configure top-level/local defaults and explicit Pages env.preview/env.production blocks for this staging project, both using staging-only bindings if base deployment is used. Provision secrets before consumers. Validate actual hostname widget allowlists; protect/deny every base/hash/branch/custom hostname and test Access rejection. Built-in preview Access alone is insufficient for base/custom aliases.
 4. Run all quality checks and review forward migrations. Execute remote staging migration in a serialized authorized job with explicit actual database name/ID. No arbitrary PR mutates shared staging schema.
-5. Deploy from repository root so functions/ compiles alongside build/client; attach explicit branch/SHA and record returned URL. No dashboard drag-and-drop shortcut.
+5. Deploy from application working directory my-project so its functions/, wrangler.jsonc and build/client are discovered together; attach explicit branch/SHA and record returned URL. No dashboard drag-and-drop shortcut.
 6. Run hosted HTML/route/header/verification/persistence/recovery checks and manual approval evidence; record candidate ready only when all applicable gates pass. A missing dependency remains blocked.
 
-Proposed CLI forms after approved provisioning (names resolved in real configuration; tokens never embedded):
+Proposed CLI forms run from my-project after approved provisioning (names resolved in real configuration; tokens never embedded):
 
 ~~~powershell
 npx wrangler d1 migrations list ken-preview --remote
@@ -85,9 +102,9 @@ Replace the SHA placeholder with the verified candidate revision; the displayed 
 
 Open approved protected preview at / → /ar/. At 390px inspect navigation, switch to English preserving page/context, directly refresh Contact/privacy and inspect initial HTML/metadata. Open quotation with type=quotation&service=villa, edit/clear service and optional fields, then submit clearly synthetic data plus actual human verification and fixture privacy acknowledgement. Match returned reference to exactly one D1 record through an authorized fresh operational session; keep personal values out of report output.
 
-Exercise general/quotation in both locales, rejection/no insert, same-identity fresh-token retry (200), changed content (409), storage unavailability, notification failure and interrupted work. Switch simulator outcome using restricted settings and replay existing pending/failed reference. Demonstrate authorized primary/backup retrieval, daily visibility, alerts and rollback retaining leads. Unknown ar/en/unsupported-locale routes return actual 404 with appropriate HTML. Confirm no indexing, no accessible unprotected alias, no public record access, no leaked secrets/data and no production records.
+Exercise general/quotation in both locales, rejection/no insert, same-identity fresh-token retry (200/original reference/createdAt), then controlled synthetic notice A → B rollover with unchanged A replay/concurrent UUID-case retry (200), changed retained content/notice (409), new key+A (400/notice_changed) and new key+B (201), storage unavailability, notification failure and interrupted work. Switch simulator outcome using restricted settings and replay existing pending/failed reference. Demonstrate authorized primary/backup retrieval, daily visibility, alerts and rollback retaining leads. Unknown ar/en/unsupported-locale routes return actual 404 with appropriate HTML. Confirm no indexing, no accessible unprotected alias, no public record access, no leaked secrets/data and no production records.
 
-Planned operator interfaces (implemented later): reconcile --environment preview, retrieve --reference <uuid> --private-output <approved-local-path>, replay --reference <uuid> --environment preview and cleanup --environment preview --synthetic-only. CLI defaults show safe counts/status/reference only, validate account/target and refuse production. Never put actual personal fields or secrets in arguments/logs. See operations.md for lease/retry/escalation and data lifecycle.
+Planned operator interfaces (implemented later): reconcile --environment preview, retrieve --reference <uuid> --private-output <approved-local-path>, replay --reference <uuid> --environment preview and cleanup --environment preview --synthetic-only. CLI defaults show safe counts/status/reference only, validate account/target and refuse production. Never put actual personal fields or secrets in arguments/logs. Monitoring adds alerts --environment preview --watch with a verified restricted request-status adapter and approved private state destination; evaluate every ≤60s during staffed intake and at least 15m after closing submissions. Backup checks heartbeat independently every ≤2m. No presumed Cloudflare scheduler/feed capability: missing complete source or coverage blocks T075/T077. See operations.md for exact source/window/retention/escalation and lease/retry/data lifecycle.
 
 ## Troubleshooting and release boundary
 

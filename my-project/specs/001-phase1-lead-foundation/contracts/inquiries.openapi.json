@@ -10,7 +10,7 @@
       "post": {
         "operationId": "submitInquiry",
         "summary": "Durably accept general or quotation inquiry",
-        "description": "Independent size/schema/origin/rate/Turnstile enforcement precedes acceptance. Unique key hash and canonical payload determine 201 new, 200 replay, 409 changed content. Notification is persisted separately and never changes accepted visitor response. Validation/token/rate rejection inserts zero leads. Body limits are streamed; raw values never echoed. Replays remain verified and rate-limited.",
+        "description": "Independent method/origin/media/trusted-network pre-parse rate claim, bounded size/JSON, structural/field validation and fresh Turnstile precede every identity outcome. Canonical lowercase UUID v4 and the stored hash version resolve retained identical payloads as 200 with original reference/time, even after notice A rolls to B. Retained different valid content (including changed notice) returns 409 before the new-acceptance notice check. Only absent identities require the current notice; stale new requests return 400/notice_changed without insertion. Unique key and atomic inquiry/pending batch arbitrate races; lookup misses never authorize stale insertion. Replay never modifies consent or notification state. No sensitive values are echoed.",
         "requestBody": {
           "required": true,
           "content": {
@@ -23,7 +23,7 @@
         },
         "responses": {
           "200": {
-            "description": "Identical normalized replay; original reference/creation time; no new lead or initial notification.",
+            "description": "Identical normalized retained replay, including notice A after rollover to B: original reference/creation time, unchanged consent/notice, no new lead or initial notification/dispatch.",
             "headers": {
               "Cache-Control": {
                 "schema": {
@@ -71,7 +71,7 @@
             }
           },
           "400": {
-            "description": "Invalid JSON/schema/current notice/field value; safe field-error categories.",
+            "description": "Invalid JSON/schema/field value, or obsolete notice for an absent identity (privacyNoticeVersion category notice_changed); identical retained old-notice replay is not this error.",
             "headers": {
               "Cache-Control": {
                 "schema": {
@@ -119,7 +119,7 @@
             }
           },
           "409": {
-            "description": "Same retained identity with different normalized lead content; no overwrite.",
+            "description": "Same retained identity with different valid normalized content, including changing notice A to B; no overwrite/insertion/notification. Transport/schema/rate/verification rejections still precede identity resolution.",
             "headers": {
               "Cache-Control": {
                 "schema": {
@@ -296,7 +296,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Health"
+                  "$ref": "#/components/schemas/HealthOk"
                 }
               }
             }
@@ -320,7 +320,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Health"
+                  "$ref": "#/components/schemas/HealthUnavailable"
                 }
               }
             }
@@ -350,7 +350,8 @@
           "idempotencyKey": {
             "type": "string",
             "format": "uuid",
-            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89aAbB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89aAbB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$",
+            "description": "Exact hyphenated UUID v4/variant pattern, no whitespace/braces/URN/coercion. Both hex cases accepted and normalized to lowercase before SHA-256(UTF-8(environment identity + LF + canonical UUID)). Client emits canonical lowercase; case-only variants are one identity."
           },
           "locale": {
             "type": "string",
@@ -457,7 +458,7 @@
             "minLength": 1,
             "maxLength": 64,
             "pattern": "^[A-Za-z0-9._-]+$",
-            "description": "Must equal current server environment notice version; fixture notices permit synthetic tests only."
+            "description": "Structurally valid for every attempt. Must equal current environment notice for a new acceptance only. Retained identical accepted requests replay against original notice and hash version after rollover; changing the notice on a retained identity is material content and returns 409. Fixture notices permit synthetic tests only."
           },
           "turnstileToken": {
             "type": "string",
@@ -826,7 +827,7 @@
           }
         }
       },
-      "Health": {
+      "HealthOk": {
         "type": "object",
         "additionalProperties": false,
         "required": [
@@ -836,10 +837,25 @@
         "properties": {
           "status": {
             "type": "string",
-            "enum": [
-              "ok",
-              "unavailable"
-            ]
+            "const": "ok"
+          },
+          "correlationId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "HealthUnavailable": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "status",
+          "correlationId"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "unavailable"
           },
           "correlationId": {
             "type": "string",
@@ -856,7 +872,7 @@
     "unsupportedMethods": "405 JSON SafeError with Allow: POST for inquiries, Allow: GET for health. OPTIONS cross-origin does not enable submission. HEAD health may be safely supported without body; inquiry GET/HEAD never returns records.",
     "unknownResources": "404 generic safe response; no public inquiries/:referenceId, list, update or replay endpoint",
     "correlation": "Server-generated UUID in X-Request-ID and JSON; never reuse caller-provided ID without validation",
-    "rate": "10/10-minute and 50/day fixed windows per trusted network digest; all parsed attempts including rejected verification/replay consume quota",
+    "rate": "10/10-minute and 50/UTC-day fixed windows per trusted network digest; claim once before body reading/parsing after method/media/origin guards. Malformed/oversized and subsequent schema/verification rejection/replay consume quota; refused quota returns 429 before reading body, outage 503. Bounded reading/independent validation remain mandatory.",
     "timeouts": "Siteverify attempt 5 seconds, one bounded retry for transient network failure using token-scoped Siteverify identity; API client unknown outcome retains identity and draft",
     "errors": "UI maps code and field category to reviewed ar/en dictionaries; unmapped code gives localized generic retry; no raw server text"
   }

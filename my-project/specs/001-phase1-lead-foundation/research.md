@@ -24,13 +24,13 @@ Date: 2026-10-11. Sources: PRD-001 v1.0, clarified spec, constitution 1.0.0 and 
 
 ## R3 — Styling, typography and public content
 
-**Decision:** Tailwind Vite plugin, CSS custom-property tokens, native CSS transitions and logical properties. Propose locally served OFL-licensed Noto Sans Arabic and Inter with optional Cormorant Garamond for English display headings; font licenses and final choices require designer/KEN approval. No motion library initially. Typed bilingual source modules and approval manifests drive all public records.
+**Decision (design update 2026-10-13):** Tailwind Vite plugin, CSS custom-property tokens, native CSS transitions and logical properties. The user-requested [design-direction.md](design-direction.md) supersedes the earlier provisional Noto/Inter/Cormorant proposal with Alexandria Arabic headings, IBM Plex Sans Arabic body and Manrope English. Source OFL licensing is checked below; exact binaries/subsets, shaping, local delivery bytes and designer/KEN approval remain pending. No motion library or advanced 3D dependency initially. Typed bilingual source modules and approval manifests drive all public records.
 
 **Rationale:** Local fonts reduce external requests, consistent logical layout supports RTL/LTR, and explicit approval status prevents fixture facts escaping into production. Arabic shaping must survive subsetting; do not remove glyphs merely to meet budgets.
 
 **Alternatives considered:** Remote font CDN, a general i18n backend and animation library. These add requests or complexity without a Phase 1 need.
 
-**Evidence:** [Tailwind Vite integration](https://tailwindcss.com/docs/installation/using-vite), [Noto Sans Arabic license](https://github.com/google/fonts/tree/main/ofl/notosansarabic), [Inter license](https://github.com/rsms/inter/blob/master/LICENSE.txt), [Cormorant license](https://github.com/google/fonts/tree/main/ofl/cormorantgaramond).
+**Evidence:** [Tailwind Vite integration](https://tailwindcss.com/docs/installation/using-vite), [Alexandria OFL](https://github.com/google/fonts/blob/main/ofl/alexandria/OFL.txt), [IBM Plex license](https://github.com/IBM/plex/blob/master/LICENSE.txt), [IBM Plex Sans Arabic metadata](https://raw.githubusercontent.com/google/fonts/main/ofl/ibmplexsansarabic/METADATA.pb), [Manrope OFL](https://github.com/google/fonts/blob/main/ofl/manrope/OFL.txt). Source licenses/metadata reviewed 2026-10-13; preserve notices and reserved-name obligations, notably Plex. No font binary downloaded or installed. Compare needed static WOFF2 subsets against restricted variable files, preserve Arabic shaping/diacritics, and measure the existing ≤120 KiB selected-locale budget including Latin fragments. No size/accessibility pass is claimed; use reviewed system/provisional fallback if approval or budget proof is unavailable.
 
 ## R4 — Validation and phone handling
 
@@ -44,7 +44,7 @@ Date: 2026-10-11. Sources: PRD-001 v1.0, clarified spec, constitution 1.0.0 and 
 
 ## R5 — Transactional persistence and notification record
 
-**Decision:** D1 prepared statements in a single batch create inquiry and sequence-one pending notification, then read the authoritative acceptance record. A unique key hash arbitrates races. Do not enable read replication in Phase 1. Notifications run only after commit; interrupted work is discoverable in reconciliation.
+**Decision:** D1 prepared statements in a single batch create inquiry and sequence-one pending notification, then read the authoritative acceptance record. A unique key hash arbitrates races. After independent controls, an authoritative retained-row lookup classifies identical replay (including accepted notice A after current B) versus changed-payload 409 before new-only current-notice equality. The lookup grants no new-write permission; a current-notice miss still uses the unique atomic batch, and a stale miss resolves a concurrent winner or rejects without insertion (data-model.md). UUID v4 inputs canonicalize to lowercase before hashing. Do not enable read replication in Phase 1. Notifications run only after commit; interrupted work is discoverable in reconciliation.
 
 **Rationale:** Batch rollback prevents a committed inquiry without its normal pending recovery record; defensive left-join reconciliation still handles legacy/anomalous missing records. No read-then-write idempotency race or overwritten payload is allowed.
 
@@ -54,7 +54,7 @@ Date: 2026-10-11. Sources: PRD-001 v1.0, clarified spec, constitution 1.0.0 and 
 
 ## R6 — Rate controls and Turnstile retries
 
-**Decision:** Use D1 atomic capped counters with short-lived keyed network digests and two fixed windows, plus platform abuse controls when available. Every request, including accepted replay, passes rate and server-side Turnstile validation. Each application retry obtains a fresh token without changing lead identity; a bounded Siteverify network retry uses its own token-scoped verification UUID.
+**Decision:** Use D1 atomic capped counters with short-lived keyed network digests and two fixed windows, claimed once before body reading/JSON parsing after transport/identity guards so malformed/oversized eligible POST floods also consume quota. This is the selected pre-parse alternative to a promised unverified edge feature; optional platform abuse controls require actual capability review. Every request, including accepted replay, passes rate and server-side Turnstile validation. Each application retry obtains a fresh token without changing lead identity; a bounded Siteverify network retry uses its own token-scoped verification UUID.
 
 **Rationale:** Tokens expire after five minutes and are single use. Pages documented bindings do not establish native rate-limiter availability; Workers limiter semantics are not a strict global quota. D1 is sufficient at prototype volume. Fail closed on unavailable controls.
 
@@ -66,7 +66,7 @@ Date: 2026-10-11. Sources: PRD-001 v1.0, clarified spec, constitution 1.0.0 and 
 
 **Decision:** An environment-controlled simulation adapter records success/failure/timeout explicitly as simulated. Restricted operator tooling claims pending work, records attempts and reconciles daily; no public recovery endpoint, new scheduler Worker, admin UI or live provider is required in Phase 1.
 
-**Rationale:** Durable work survives waitUntil interruption, and authorized operational replay satisfies the approved equivalent recovery path. Pages Functions do not supply a cron trigger to assume here. Simulation changes come from restricted deployment configuration, never request bodies/query parameters.
+**Rationale:** Durable work survives waitUntil interruption, and authorized operational replay supports the planned equivalent recovery path, subject to operator authorization/evidence. Pages Functions do not supply a cron trigger to assume here. Simulation changes come from restricted deployment configuration, never request bodies/query parameters.
 
 **Alternatives considered:** Fire-and-forget email; unpersisted mock outcomes; an extra queue/Worker service; unauthenticated retry route. They either fail recovery or expand scope.
 
@@ -109,3 +109,13 @@ Date: 2026-10-11. Sources: PRD-001 v1.0, clarified spec, constitution 1.0.0 and 
 ## Resolution and external dependencies
 
 No technical NEEDS CLARIFICATION remains. Exact dependency patches are an implementation lockfile action within the chosen supported baselines, not a product ambiguity. Provisioning, privacy decisions, business assets, named staff and approval evidence cannot be resolved by research; dependencies.md records them as external gates. Planning PASS never means preview acceptance, privacy clearance or production approval. No approved exception is assumed.
+
+## R11 — Premium design and later cinematic feasibility (2026-10-13)
+
+**Decision:** [design-direction.md](design-direction.md) defines the requested palette/type proposal and concise five-section Home with six stable service choices and an inline project/preparation status. Phase 1 uses a static architectural still when licensed media is supplied, otherwise an honest navy CSS surface, plus the existing short color/opacity feedback. No package installation, WebGL, video, door-opening motion or parallax is introduced.
+
+**Rationale:** This preserves FR-005, SSG, accessible content/CTA availability, secure-lead-first sequencing and the existing performance ceilings. Two Arabic families may challenge the ≤120 KiB font budget; this is a measured T084/DEP-02/12 gate, not an assumed fit. Local font-display swap/selective preload and actual metric-matched fallback require browser traces. [Font guidance](https://web.dev/articles/font-best-practices).
+
+**Later alternatives:** CSS 3D can create shallow door planes/perspective with native transforms but cannot promise physical reflections. Some grouping properties flatten preserve-3d trees; separate clip/opacity wrappers and test browser composition. [CSSWG transforms](https://www.w3.org/TR/css-transforms-2/). An opt-in pre-rendered silent clip can preserve realistic light/materials with decode/transfer costs; keep SSG poster, explicit Play/Stop, playback-error fallback and mobile still. [Media playback guidance](https://developer.mozilla.org/en-US/docs/Web/Media/Guides/Autoplay). Conditional client-only React Three Fiber can support actual geometry/material/camera response, with runtime/GPU/context-loss costs; demand rendering, one scene, bounded DPR/resources and Canvas fallback/error boundary are candidate measures. [R3F performance](https://r3f.docs.pmnd.rs/advanced/scaling-performance), [Canvas fallback](https://r3f.docs.pmnd.rs/api/canvas).
+
+**Recommendation:** Separately approved Phase 3/P1-F003 study compares CSS depth and rendered media first; R3F requires an approved interactive need, compatibility/asset proof, schedule impact and unchanged baseline performance/accessibility. All cost/fps caps in design-direction.md are unmeasured proof proposals, not Phase 1 allowances or approved later implementation tasks. No new mandatory task/package, architecture exception or approval is inferred. Exact font/media files and supported versions must be checked during later authorized work.
