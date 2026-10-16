@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+!.env.sample
+.dev.vars
+.dev.vars.*
+.npmrc
+*.pem
+*.p12
+*.pfx
+
+# Build outputs
+dist/
+build/
+coverage/
+.wrangler/
+
+# Test outputs
+playwright-report/
+test-results/
+
+# Logs and system files
+*.log
+.DS_Store
+Thumbs.db

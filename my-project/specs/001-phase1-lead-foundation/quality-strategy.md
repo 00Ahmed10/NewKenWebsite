@@ -2,6 +2,8 @@
 
 Targets are acceptance requirements, not executed results. Trace candidate SHA, preview URL, timestamp, tool/browser versions, locale/mode, device/profile and outcome. Keep evidence private and synthetic-only. Blocked evidence is reported as blocked, never skipped-as-pass. QA/Product Owner own profile agreement before performance acceptance (DEP-12).
 
+**T002 tooling migration — 2026-10-13:** Use exactly pinned Lighthouse CLI 13.5.0 instead of `@lhci/cli` 0.15.1 under the user's authorized security remediation. T020/T101/T102 must implement the existing performance-check interface using independent cold CLI runs, validated JSON reports, median calculation and explicit threshold assertions that fail CI with a nonzero exit. The CLI's successful process exit alone is insufficient. Preserve all run counts, scores, metrics, transfer budgets, proposed/agreed profiles and manual/interaction/hosted checks below. The [toolchain migration plan](evidence/toolchain.md#lighthouse-cli-migration-plan) defines this future runner contract; no performance runner or acceptance measurement is implemented by T002.
+
 ## Automated verification matrix
 
 | Layer | Required cases | Traceability |

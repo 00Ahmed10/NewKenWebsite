@@ -24,7 +24,7 @@ Phase 1 implements foundation slices of P0-F001/F002/F005/F007 plus P0-F003/F006
 | Runtime/storage | Cloudflare Pages + minimal Pages Functions; D1 prepared/batched writes, SQL migrations, no replication; geography/privacy provisional |
 | Human verification | Turnstile server Siteverify; explicit widget lifecycle and separate environment keys |
 | Notifications | Environment-controlled hosted simulation plus durable attempt history and restricted operator replay; live email provider deferred |
-| Quality tooling | Vitest 4.1+, @cloudflare/vitest-plugin 1.x, Testing Library/jsdom, Playwright, axe, Lighthouse CI, Prettier/ESLint |
+| Quality tooling | Vitest 4.1+, @cloudflare/vitest-plugin 1.x, Testing Library/jsdom, Playwright, axe, Lighthouse CLI 13.5.0 with the planned Node report/threshold runner, Prettier/ESLint |
 | Media | Build-time Sharp; approved same-origin AVIF/WebP/JPEG and local licensed WOFF2 fonts |
 | Delivery | GitHub Actions, Wrangler 4.x Direct Upload; reviewed SHA-pinned actions; protected preview; production disabled |
 | Scope/scale | Low-volume prototype; 12 paired primary destinations (8 preparation states), 2 privacy routes, six service IDs; no inferred traffic/capacity claims |
@@ -32,7 +32,9 @@ Phase 1 implements foundation slices of P0-F001/F002/F005/F007 plus P0-F003/F006
 | Constraints | WCAG 2.1 AA, locale parity, reduced-motion-safe enhancement, synthetic-only unapproved infrastructure, no public leads/secrets/logged personal data |
 | Performance | Release p75 LCP ≤2.5s, INP ≤200ms, CLS ≤0.10; synthetic performance ≥90/accessibility ≥95; agreed two-second critical-content objective |
 
-Supported version baselines are researched, not installed/tested. Exact patches, action SHAs, Node/npm and browser tool versions are pinned and compatibility-checked in the first implementation task. [research.md](research.md) records choices/alternatives and official sources. Documented corrections require renewed consistency analysis; external approvals remain gates in [dependencies.md](dependencies.md).
+The original planning version baselines were researched rather than installed/tested; actual T002 verification is recorded separately in [toolchain evidence](evidence/toolchain.md). Exact patches, action SHAs, Node/npm and browser tool versions require pinning and compatibility checks in their owning tasks. [research.md](research.md) records the original choices/alternatives and official sources. Documented corrections require renewed consistency analysis; external approvals remain gates in [dependencies.md](dependencies.md).
+
+**T002 dependency decision — 2026-10-13:** The user authorizes replacing vulnerable `@lhci/cli` 0.15.1 with exactly pinned `lighthouse` 13.5.0. This supersedes the earlier Lighthouse CI package selection, preserving every performance/accessibility threshold, profile, transfer budget and CI failure requirement. T020/T101/T102 retain their existing file ownership and must supply the CLI runner, validated JSON parsing, five cold runs per Home/Contact locale, aggregation and nonzero threshold-failure behavior; those tasks are not implemented by T002. Actual dependency verification and the [migration plan](evidence/toolchain.md#lighthouse-cli-migration-plan) are recorded in toolchain evidence.
 
 ## Constitution Check
 

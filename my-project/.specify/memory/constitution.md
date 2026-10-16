@@ -1,4 +1,47 @@
 <!--
+Sync Impact Report — 2026-10-16 staging architecture amendment
+Version change: 1.0.0 → 2.0.0 (MAJOR: incompatible redefinition of platform MUSTs).
+Authority: explicit user instruction to amend PRD and constitution for staging only.
+This records technical documentation authorization, not KEN stakeholder/project-owner
+identity verification, legal clearance, deployment or operational acceptance.
+Rationale: adopt the user-selected Docker/Railway/secure Node.js/PostgreSQL staging
+architecture assessed in specs/001-phase1-lead-foundation/architecture-change-impact.md.
+Modified principles:
+  I. PRD Scope and Verifiable Content — source revision v1.1; product v1.0 unchanged.
+  II. Typed React and Cloudflare Architecture → Typed React and Staging Architecture.
+  VI. Secure Boundaries and Minimal Personal Data — environment/roles/privacy boundary.
+  VII. Durable Inquiries and Recoverable Notifications — atomic PostgreSQL/outbox,
+       concurrent replay/notice rollover and staging authority; same visitor guarantees.
+  VIII. Evidence-Based Quality and Operational Readiness — CI enforcement and verified
+        Node/Docker/PostgreSQL/monitoring/operations; no threshold reduction.
+Principles III–V unchanged. Architecture/Release Constraints and documentation-only
+Governance scope updated; Amendment History added. No principles/guarantees removed.
+Coordinated source: ../docs/PRD.md updated to v1.1; Draft stakeholder status retained.
+Consistency propagation — intentionally deferred by the user's two-document boundary:
+  ⚠ .specify/templates/plan-template.md — Pages/Functions/D1 stack/paths/checks pending.
+  ⚠ .specify/templates/tasks-template.md — backend paths/sample D1 tasks pending.
+  ⚠ .specify/templates/spec-template.md — PRD revision and approval-boundary sync pending.
+  ⚠ specs/001-phase1-lead-foundation/{spec,plan,tasks,research,data-model}.md pending.
+  ⚠ specs/001-phase1-lead-foundation/{dependencies,operations,quality-strategy,quickstart}.md
+    and contracts/ pending; design-direction.md only if context needs a dated note.
+  ⚠ AGENTS.md managed context reviewed; entry links remain valid, current plan is stale
+    for migrated implementation until coordinated update and fresh read-only analysis.
+  .specify/templates/commands/*.md, README.md and docs/quickstart.md absent.
+  Preserve the assessment and all historical T001/T002 evidence; do not rewrite old hashes.
+Pre-amendment SHA-256 (actual bytes; retain historical evidence separately):
+  ../docs/PRD.md: 3b5dee7c002d6921f4bce57e59b217d9186511fef4434564c84679ed4f1a4154
+  .specify/memory/constitution.md: fd420041c8b92c2902c47e6d84821512b729a76570d597c06d70fbf44d32f386
+No package/lock/task/code/install/deploy/commit/push changes authorized in this step.
+Hooks: existing repository verified; no initialization performed. Optional commit hook
+skipped under the user's no-commit instruction. No hook changed.
+External follow-up: stakeholder PRD/architecture acceptance, production architecture/parity,
+Saudi privacy/transfers/locations (including metadata), staging access/roles/region,
+operations/monitoring/backup/restore, content/contacts, live email and schedule review.
+These are pending gates, not approved capabilities. No unexplained placeholders added.
+Historical initial-adoption Sync Impact Report follows unchanged.
+-->
+
+<!--
 Sync Impact Report
 Version change: unratified placeholder template → 1.0.0 (initial adoption).
 Modified principles: all five unnamed template slots replaced with concrete KEN principles.
@@ -33,7 +76,7 @@ These remain release dependencies, not approval claims made by this constitution
 
 ### I. PRD Scope and Verifiable Content
 
-Development MUST trace requirements and acceptance evidence to PRD-001 v1.0 in
+Development MUST trace requirements and acceptance evidence to PRD-001 v1.1 in
 `../docs/PRD.md`. v1.0 MUST deliver Home, About Us, Services, Projects, Why Choose Us
 and Contact Us in both locales, plus bilingual privacy utility content. The Services
 page MUST cover the six defined categories: villa, school, administrative, restaurant,
@@ -51,7 +94,7 @@ explicit empty states or suppress unverified contact actions. Fabricated reviews
 credentials, projects and placeholder contact numbers MUST NOT be published. These rules
 protect buyer trust and keep the release focused on credible lead generation.
 
-### II. Typed React and Cloudflare Architecture
+### II. Typed React and Staging Architecture
 
 The frontend MUST use React, TypeScript, Vite and Tailwind CSS, typed content models,
 shared components and documented design tokens. React Router or a compatible equivalent
@@ -61,13 +104,20 @@ content MUST NOT require a client-side API fetch.
 
 Version-controlled bilingual modules MUST remain the public content system of record.
 The build MUST validate translation keys, stable IDs, image references, route pairings
-and metadata. Hosting MUST use Cloudflare Pages and minimal Pages Functions under
-`/api/v1/`; no standalone Express server, visitor JWT or user table is required. Public
-GET resources MUST expose only approved public content/configuration, never inquiries.
-Cloudflare D1 MUST store migration-managed inquiries and notification attempts, subject
-to privacy/data-location clearance. Turnstile MUST be verified server-side. Architecture
-changes MUST record rationale and approval before adoption; unapproved storage/email
-processing locations MUST be changed before production lead capture.
+and metadata. Staging MUST use Docker on Railway with a secure Node.js service serving
+the prerendered frontend and same-origin minimal `/api/v1/` API, plus private PostgreSQL.
+Explicit SSG MUST preserve meaningful initial HTML, metadata, locale direction and
+status-coded localized 404s; disabling runtime SSR MUST NOT reduce delivery to a client-only
+SPA. Node delivery MUST enforce redirects, CSP/security headers, compression and safe
+cache behavior; inactive Pages directive files cannot satisfy those requirements.
+No Express framework, visitor JWT or user table is required. Public GET resources MUST
+expose only approved public content/configuration, never inquiries. PostgreSQL MUST store
+migration-managed staging inquiries and notification attempts as a transactional outbox.
+Turnstile MUST be verified server-side. Production hosting/storage MUST remain a separate
+approved decision with staging/production parity assessment and equivalent guarantees.
+Architecture changes MUST record rationale and authorization before adoption; selection
+of staging technology MUST NOT authorize deployment, real-data intake or unapproved
+processing locations. Privacy, access and operational readiness MUST be demonstrated.
 
 ### III. Arabic-First Bilingual Parity
 
@@ -138,15 +188,22 @@ frontend bundles or public configuration. Errors MUST use safe status codes/corr
 references without raw stack traces or internal details.
 
 Only data needed for lead response MUST be collected, with explicit mandatory privacy
-acknowledgement and recorded notice version/timestamp. Production processing MUST await
-approved bilingual privacy text and Saudi PDPL legal review of lawful basis, retention,
-processor/subprocessor locations and cross-border transfers. Proposed 12-month retention
-and daily restricted encrypted backups with 30-day rolling retention MUST NOT be treated
-as approved policy. Owners MUST approve periods, locations and feasible provider procedures,
+acknowledgement and recorded notice version/timestamp. Real personal-data intake in any
+environment MUST await separate authorization, approved bilingual privacy text and Saudi
+PDPL legal review of lawful basis, retention, processor/subprocessor locations and
+cross-border transfers, including app/database/log/backup and notification processing.
+Staging MUST remain protected, noindex and synthetic-only; tester network/access metadata
+MUST also receive processing/location review. Platform selection is not legal clearance.
+Proposed 12-month retention and daily restricted encrypted backups with 30-day rolling
+retention MUST NOT be treated as approved policy. Owners MUST approve periods, locations and feasible provider procedures,
 including deletion/export and a restore drill.
 
-Lead access MUST use provider organization roles, least privilege and MFA. Public APIs
-MUST NOT expose lead listing/read/update operations. Personal fields, raw messages,
+Lead access MUST use provider organization roles, least privilege and MFA, with distinct
+PostgreSQL application, migration and operational roles; public API credentials MUST NOT
+have owner/superuser privileges. Staging access MUST protect every exposed document,
+asset and API alias before delivery, with reviewed credential lifecycle and only a
+minimal non-sensitive health-probe exception if approved. Public APIs MUST NOT expose lead
+listing/read/update operations. Personal fields, raw messages,
 secrets and tokens MUST NOT enter URLs, public caches, analytics or application logs.
 Optional analytics MUST receive legal/consent approval, use non-sensitive fields and
 remain independent of navigation, performance and submission success.
@@ -160,18 +217,34 @@ type and privacy acknowledgement. Other contact/building fields remain optional 
 in the contract. Malformed service/query values MUST be ignored safely.
 
 Success MUST mean a durable inquiry write with unique reference ID and timestamp.
-New acceptance MUST return 201; identical idempotent replay MUST return 200 with the
-original reference and no duplicate. Reusing a key for a different payload MUST return
-409. Invalid/oversized/spam/rate-limited requests MUST NOT insert leads. Storage failure
-MUST return a safe failure (503), preserve the draft and offer retry/contact alternatives.
+For staging, one PostgreSQL transaction on one connection MUST commit the inquiry and
+initial pending notification outbox record atomically; failure of either write MUST
+roll back both. New acceptance MUST return 201 only after commit; concurrent identical
+idempotent replay MUST return 200 with the original reference/timestamp and no duplicate
+or new initial attempt. Reusing a retained key for a different payload MUST return 409
+without mutation. Retained identity/hash versions MUST remain usable for inquiry retention.
+Current privacy-notice rollover MUST serialize with new acceptance: unchanged retained
+old-notice replay remains valid after independent request controls, changed retained
+content/notice conflicts, and a new stale-notice submission MUST be rejected. Lost commit
+responses MUST allow safe same-identity retry with fresh anti-spam verification without
+assuming that no commit occurred. Invalid/oversized/spam/rate-limited requests MUST NOT
+insert leads. Quota accounting MUST survive later validation/acceptance failure. Storage
+failure MUST return a safe failure (503), preserve the draft and offer retry/contact
+alternatives. Separately approved production architecture MUST preserve these guarantees.
 
-Notification MUST follow persistence. Every accepted lead MUST have a recorded notification
-attempt/status and tested retry or authorized operational replay. Email failure MUST
-preserve the lead and successful visitor confirmation. Operators MUST reconcile daily
+Notification MUST follow persistence. Every accepted lead MUST have a durable outbox
+attempt/status and tested bounded retry/escalation or authorized operational replay.
+Recovery MUST preserve attempt history, lease/fencing ownership and unique sequencing;
+replay MUST NOT create another inquiry. Phase 1 staging MUST use labeled simulation and
+restricted attended drain/replay until live delivery is separately approved; no automatic
+worker is implied. Email failure MUST preserve the lead and successful visitor confirmation.
+Operators MUST reconcile daily
 and make every failed-notification inquiry visible to the designated owner within one
 business day. An optional anonymous `lead_submitted` event MUST fire only after durable
-acceptance. D1 records MUST remain authoritative lead totals. This prevents a polished
-form from silently losing customer requests.
+acceptance. PostgreSQL records MUST remain authoritative staging lead totals; the separately
+approved production inquiry store MUST remain authoritative production totals. Synthetic
+counts MUST NOT be represented as live business results. This prevents a polished form
+from silently losing customer requests.
 
 ### VIII. Evidence-Based Quality and Operational Readiness
 
@@ -183,7 +256,12 @@ reduced-motion, responsive and editorial review. Scores alone MUST NOT establish
 accessibility compliance.
 
 CI/release checks MUST cover formatting, lint, TypeScript, unit/integration tests,
-content/route validation, accessibility smoke checks and production build. Preview QA
+content/route validation, accessibility smoke checks and production build. Required
+performance/accessibility thresholds and asset budgets MUST be enforced automatically;
+missing/invalid reports or failed thresholds MUST exit nonzero and block CI delivery,
+without success masking. Preserve the authorized Lighthouse 13.5.0 security migration.
+Docker/Linux reproduction, private PostgreSQL transactions/roles, trusted ingress,
+staging access and secret/image boundaries MUST receive meaningful verification. Preview QA
 MUST cover the latest two major Chrome, Firefox, Safari and Edge versions, current iOS
 Safari and Android Chrome. Production smoke tests MUST verify real contact links, durable
 test leads, notification recovery, crawlability and HTTPS. Critical release blockers MUST
@@ -192,24 +270,36 @@ close, with rollback and approved backup/restore procedures exercised before lau
 Structured logs MUST include safe correlation IDs, validation categories and notification
 status. Monitoring MUST test alerts for > 1% 5xx over 15 minutes or sustained notification
 failure. Named owners MUST review availability, errors, speed and lead reliability.
-Missing session data MUST be reported as insufficient data. Runbooks MUST define
-escalation, secure lead retrieval and access for at least two authorized staff.
+Missing session data MUST be reported as insufficient data. Complete unsampled API status
+counts MUST support the existing alert denominator. Bounded environment/schema/database
+readiness checks MUST NOT replace continuous monitoring; missing monitoring coverage
+MUST trigger escalation, not a healthy claim. Runbooks MUST define restricted private
+migration/retrieval/replay/cleanup, secret rotation, approved backup/restore and rollback,
+escalation and tested access for at least two authorized staff. Provider features,
+regions, roles or backups MUST NOT be presumed approved or operational without evidence.
 
 ## Architecture and Release Constraints
 
-The requirements source is [PRD-001 v1.0](../../../docs/PRD.md) in the sibling `docs`
-directory. It remains Draft pending stakeholder approval; adopting principles does not
-approve business claims, vendors, schedule or production launch. No feature plan exists
-at initial adoption. Future plans MUST select concrete paths/tooling within this architecture.
+The requirements source is [PRD-001 v1.1](../../../docs/PRD.md) in the sibling `docs`
+directory; product release scope remains v1.0. It remains Draft pending stakeholder
+approval. The user's 2026-10-16 instruction authorizes this staging-only technical
+documentation amendment following the
+[impact assessment](../../specs/001-phase1-lead-foundation/architecture-change-impact.md).
+It does not establish KEN stakeholder/legal sign-off, approve business claims or schedule,
+or authorize provisioning, deployment, real-data processing or production launch.
+Production hosting/storage MUST receive separate architecture/parity and owner/legal
+approval before dependent production work; the former Cloudflare proposal and new Railway
+staging selection confer no production approval. Existing feature artifacts/templates
+still describe the prior platform and MUST be migrated and reanalyzed before implementation.
 
 | Boundary | Required constraint |
 |---|---|
 | Content | Typed bilingual source; six page types, 12 primary localized routes and privacy utilities |
 | Frontend | React/TypeScript/Vite/Tailwind; shared direction-aware components and build-time HTML |
-| Runtime | Cloudflare Pages + Pages Functions; versioned `/api/v1/` resources |
-| Leads | D1 inquiries/notification attempts, migrations and idempotency hashes; privacy clearance |
+| Runtime | Staging: Docker/Railway secure Node.js delivery of SSG and same-origin versioned `/api/v1/`; production separately approved |
+| Leads | Staging: private PostgreSQL inquiries/transactional outbox, migrations, atomic acceptance and retained idempotency; processing/location clearance; production store separately approved |
 | Integrations | Server-verified Turnstile; transactional email provider selected before launch |
-| Environments | Separate local, preview/staging and production; isolated D1, Turnstile and recipients |
+| Environments | Separate local, protected synthetic-only preview/staging and production; isolated databases/credentials, Turnstile and recipients; no real intake without separate clearance |
 | Deployment | Reviewed CI pipeline; GitHub Actions remains proposed |
 | Ownership | KEN Management authorizes launch; Product Owner coordinates acceptance; QA records evidence |
 
@@ -259,8 +349,8 @@ they cannot silently weaken release criteria.
 This constitution governs development decisions and template outputs. The PRD defines
 product requirements; approved amendments MUST keep both consistent. Explicit user scope
 and authorization govern the current task. Conflicts MUST be surfaced and resolved in
-the decision record before dependent work. This adoption covers documentation only;
-application coding requires a later implementation instruction.
+the decision record before dependent work. This amendment covers governing documentation only;
+application coding, package changes and deployment require separate authorization.
 
 Amendments MUST state rationale, impact on specs/plans/tasks and migration steps, receive
 project-owner approval, update dependent guidance and prepend a Sync Impact Report.
@@ -275,4 +365,11 @@ repeat the Constitution Check after design; reviewers MUST reject unresolved vio
 structure and commands. Initial 1.0.0 replaces an unratified template and does not claim
 earlier governance history or completed stakeholder release approvals.
 
-**Version**: 1.0.0 | **Ratified**: 2026-10-11 | **Last Amended**: 2026-10-11
+## Amendment History
+
+| Version | Date | Authority and change |
+|---|---|---|
+| 2.0.0 | 2026-10-16 | Explicit user-authorized staging documentation amendment: replace the incompatible Pages/Functions/D1 MUSTs with Docker/Railway/Node.js/PostgreSQL; preserve product/security/quality guarantees and separate production/real-data/operations approvals. KEN stakeholder/legal sign-off remains pending; downstream migration is required. |
+| 1.0.0 | 2026-10-11 | Initial documentation adoption from the unratified template; original ratification retained; no stakeholder release approval claimed. |
+
+**Version**: 2.0.0 | **Ratified**: 2026-10-11 | **Last Amended**: 2026-10-16
